@@ -5,7 +5,8 @@ version := "1.0"
 scalaVersion := "2.11.7"
 
 libraryDependencies ++= {
-  val akkaHttpVersion = "1.0-RC4"
+  val akkaHttpVersion =  "2.0"
+//  val akkaHttpVersion =  "2.4.6"
 
   Seq(
     "com.typesafe.akka" %% "akka-stream-experimental" % akkaHttpVersion,

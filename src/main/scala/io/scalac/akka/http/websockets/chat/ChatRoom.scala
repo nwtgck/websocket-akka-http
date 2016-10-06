@@ -1,19 +1,22 @@
 package io.scalac.akka.http.websockets.chat
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.model.ws.{Message, TextMessage}
-import akka.stream.OverflowStrategy
-import akka.stream.scaladsl.FlowGraph.Implicits._
+import akka.stream.{FlowShape, OverflowStrategy}
+//import akka.stream.scaladsl.FlowGraph.Implicits._
 import akka.stream.scaladsl._
 
 class ChatRoom(roomId: Int, actorSystem: ActorSystem) {
 
   private[this] val chatRoomActor = actorSystem.actorOf(Props(classOf[ChatRoomActor], roomId))
 
-  def websocketFlow(user: String): Flow[Message, Message, _] =
-    Flow(Source.actorRef[ChatMessage](bufferSize = 5, OverflowStrategy.fail)) {
+  def websocketFlow(user: String): Flow[Message, Message, _] = {
+    val source = Source.actorRef[ChatMessage](bufferSize = 5, OverflowStrategy.fail)
+
+    Flow.fromGraph(GraphDSL.create(source){
       implicit builder =>
-        chatSource => //source provideed as argument
+        chatSource =>
+          import GraphDSL.Implicits._
 
           //flow used as input it takes Message's
           val fromWebsocket = builder.add(
@@ -50,8 +53,9 @@ class ChatRoom(roomId: Int, actorSystem: ActorSystem) {
           chatSource ~> backToWebsocket
 
           // expose ports
-          (fromWebsocket.inlet, backToWebsocket.outlet)
-    }
+          FlowShape(fromWebsocket.in, backToWebsocket.out)
+    })
+  }
 
   def sendMessage(message: ChatMessage): Unit = chatRoomActor ! message
 
