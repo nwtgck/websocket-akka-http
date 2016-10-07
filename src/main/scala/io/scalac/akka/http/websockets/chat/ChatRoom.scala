@@ -57,7 +57,7 @@ class ChatRoom(roomId: Int, actorSystem: ActorSystem) {
     })
   }
 
-  def sendMessage(message: ChatMessage): Unit = chatRoomActor ! message
+//  def sendMessage(message: ChatMessage): Unit = chatRoomActor ! message
 
 }
 
